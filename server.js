@@ -1,15 +1,12 @@
 require('dotenv').config();
-const path = require('path');
-const fs = require('fs');
 const express = require('express');
 const multer = require('multer');
 const mysql = require('mysql2/promise');
+const { put, del } = require('@vercel/blob');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
@@ -18,7 +15,8 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'share_with_manager',
   waitForConnections: true,
-  connectionLimit: 10
+  connectionLimit: 5,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : undefined
 });
 
 const ALLOWED_MIME = new Set([
@@ -31,17 +29,8 @@ const ALLOWED_MIME = new Set([
   'application/x-zip-compressed'
 ]);
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, unique + ext);
-  }
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 25 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (ALLOWED_MIME.has(file.mimetype)) return cb(null, true);
@@ -51,7 +40,6 @@ const upload = multer({
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(UPLOAD_DIR));
 
 // Get all entries with their files, ordered by serial number
 app.get('/api/entries', async (req, res) => {
@@ -82,6 +70,21 @@ app.post('/api/entries', upload.array('uploads', 20), async (req, res) => {
       return res.status(400).json({ error: 'Heading is required' });
     }
 
+    const files = req.files || [];
+    const uploaded = [];
+    for (const file of files) {
+      const blob = await put(file.originalname, file.buffer, {
+        access: 'public',
+        addRandomSuffix: true
+      });
+      uploaded.push({
+        original_name: file.originalname,
+        file_url: blob.url,
+        mime_type: file.mimetype,
+        size_bytes: file.size
+      });
+    }
+
     await conn.beginTransaction();
 
     const [[{ maxSerial }]] = await conn.query(
@@ -95,11 +98,10 @@ app.post('/api/entries', upload.array('uploads', 20), async (req, res) => {
     );
     const entryId = result.insertId;
 
-    const files = req.files || [];
-    for (const file of files) {
+    for (const f of uploaded) {
       await conn.query(
-        'INSERT INTO entry_files (entry_id, original_name, stored_name, mime_type, size_bytes) VALUES (?, ?, ?, ?, ?)',
-        [entryId, file.originalname, file.filename, file.mimetype, file.size]
+        'INSERT INTO entry_files (entry_id, original_name, file_url, mime_type, size_bytes) VALUES (?, ?, ?, ?, ?)',
+        [entryId, f.original_name, f.file_url, f.mime_type, f.size_bytes]
       );
     }
 
@@ -114,14 +116,13 @@ app.post('/api/entries', upload.array('uploads', 20), async (req, res) => {
   }
 });
 
-// Delete an entry (and its files from disk)
+// Delete an entry (and its files from blob storage)
 app.delete('/api/entries/:id', async (req, res) => {
   try {
-    const [files] = await pool.query('SELECT stored_name FROM entry_files WHERE entry_id = ?', [req.params.id]);
+    const [files] = await pool.query('SELECT file_url FROM entry_files WHERE entry_id = ?', [req.params.id]);
     await pool.query('DELETE FROM entries WHERE id = ?', [req.params.id]);
     for (const f of files) {
-      const p = path.join(UPLOAD_DIR, f.stored_name);
-      fs.unlink(p, () => {});
+      del(f.file_url).catch(() => {});
     }
     res.json({ success: true });
   } catch (err) {
@@ -137,6 +138,10 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

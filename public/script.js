@@ -57,7 +57,7 @@ async function loadEntries() {
     const tr = document.createElement('tr');
 
     const filesHtml = entry.files.map(f =>
-      `<a href="/uploads/${encodeURIComponent(f.stored_name)}" target="_blank">${escapeHtml(f.original_name)}</a>`
+      `<a href="${escapeAttr(f.file_url)}" target="_blank">${escapeHtml(f.original_name)}</a>`
     ).join('');
 
     tr.innerHTML = `
@@ -85,6 +85,10 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+function escapeAttr(str) {
+  return String(str).replace(/"/g, '&quot;');
 }
 
 loadEntries();

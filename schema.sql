@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS entry_files (
   id INT AUTO_INCREMENT PRIMARY KEY,
   entry_id INT NOT NULL,
   original_name VARCHAR(500) NOT NULL,
-  stored_name VARCHAR(500) NOT NULL,
+  file_url VARCHAR(1000) NOT NULL,
   mime_type VARCHAR(150),
   size_bytes BIGINT,
   uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
