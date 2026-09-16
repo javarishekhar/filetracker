@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Share With Manager</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Share With Manager</h1>
+
+<button id="openModalBtn" title="Add content">+</button>
+
+<table id="entriesTable">
+  <thead>
+    <tr>
+      <th>S.No</th>
+      <th>Heading</th>
+      <th>Description</th>
+      <th>Files</th>
+      <th>Added On</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="entriesBody">
+  </tbody>
+</table>
+
+<div id="emptyMsg" style="display:none;">No entries yet. Click + to add content.</div>
+
+<!-- Modal -->
+<div id="modalOverlay" class="overlay" style="display:none;">
+  <div class="modal">
+    <h2>Add Content</h2>
+    <form id="entryForm">
+      <label for="heading">1. Heading</label>
+      <input type="text" id="heading" name="heading" required>
+
+      <label for="description">2. Description</label>
+      <textarea id="description" name="description" rows="4"></textarea>
+
+      <label for="uploads">3. Uploads (multiple allowed: JPG, JPEG, PNG, PDF, XLSX, ZIP)</label>
+      <input type="file" id="uploads" name="uploads" multiple accept=".jpg,.jpeg,.png,.pdf,.xlsx,.xls,.zip">
+
+      <div id="formError" class="error"></div>
+
+      <div class="modalButtons">
+        <button type="submit">Submit</button>
+        <button type="button" id="cancelBtn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

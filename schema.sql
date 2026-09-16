@@ -1,0 +1,23 @@
+CREATE DATABASE IF NOT EXISTS share_with_manager
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE share_with_manager;
+
+CREATE TABLE IF NOT EXISTS entries (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  serial_no INT NOT NULL,
+  heading VARCHAR(255) NOT NULL,
+  description TEXT,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS entry_files (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  entry_id INT NOT NULL,
+  original_name VARCHAR(500) NOT NULL,
+  stored_name VARCHAR(500) NOT NULL,
+  mime_type VARCHAR(150),
+  size_bytes BIGINT,
+  uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE
+);

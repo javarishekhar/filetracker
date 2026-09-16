@@ -1,0 +1,85 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+#openModalBtn {
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #999;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #eee;
+}
+
+#emptyMsg {
+  margin-top: 15px;
+  color: #666;
+}
+
+.overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background: #fff;
+  padding: 20px;
+  width: 400px;
+  max-width: 90%;
+}
+
+.modal label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.modal input[type="text"],
+.modal textarea,
+.modal input[type="file"] {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 5px;
+}
+
+.modalButtons {
+  margin-top: 15px;
+}
+
+.modalButtons button {
+  margin-right: 10px;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}
+
+.fileList a {
+  display: block;
+}
+
+.deleteBtn {
+  cursor: pointer;
+  color: red;
+}
